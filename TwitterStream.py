@@ -4,7 +4,7 @@ from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
 import json
 import csv
-#from time import gmtime, strftime
+from time import gmtime, strftime
 
 
 ckey = 'R8LEox3sb0HKLGkSXCzJQQ'
@@ -15,7 +15,8 @@ asecret = 'dfBkGwqrwkcAyUGdxzriOcDtOooOftkib1xW6gSPaN4'
 class listener(StreamListener):
    global mentions
    mentions = []
-
+   global today
+   today = '2015-06-01 11:47:10'#strftime("%Y-%m-%d")
    def on_data(self, data):
 
        decoded = json.loads(data)
@@ -29,12 +30,16 @@ class listener(StreamListener):
        mentions.append(mention)
        print decoded['text'].encode('ascii', 'ignore')
        print len(mentions)
+       print strftime("%Y-%m-%d %H:%M:%S")
 
-
-       if len(mentions) == 100:#instead of length will be time strftime("%Y-%m-%d %H:%M:%S", gmtime())
-           with open('mentions2.csv', 'wb') as csvfile:#name the file with the date
+       global today
+       if strftime("%Y-%m-%d %H:%M:%S") > today:#instead of length will be time strftime("%Y-%m-%d %H:%M:%S", gmtime()) per hour
+           today = strftime("%Y-%m-%d") + " 23:59:59"
+           #write per hour
+           with open('mentions' + strftime("%Y-%m-%d") + '.csv', 'wb') as csvfile:#name the file with the date
               csv_writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_ALL)
-              csv_writer.writerow("created_at", "tweet_id", "reply_screen_name", "text", "in_reply_to_status_id_str", "in_reply_to_screen_name")
+              header = "created_at" + "," + "tweet_id" + "," + "reply_screen_name" + "," + "text" + "," + "in_reply_to_status_id_str" + "," + "in_reply_to_screen_name"
+              csv_writer.writerow(header)
               for x in mentions:
                  csv_writer.writerow([x[y] for y in range( len(mentions[0]) )])
 
@@ -57,6 +62,6 @@ class listener(StreamListener):
 auth = OAuthHandler(ckey, csecret)
 auth.set_access_token(atoken, asecret)
 candidates = ["@LynneForMayor", "@nelsondiaz2015", "@JimFKenney", "@DO2015PHL",
-                "@Tmiltonstreet", "@SenTonyWilliams", "@melissaformayor", "@Akalady5"]
+                "@Tmiltonstreet", "@SenTonyWilliams", "@melissaformayor", "@Akalady5", "@HillaryClinton"]
 twitterStream = Stream(auth, listener())
 twitterStream.filter(track=candidates)
